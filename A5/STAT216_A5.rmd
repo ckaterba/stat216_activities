@@ -1,0 +1,201 @@
+---
+title: "STAT216 Activity 5: Datasaurus Vex"
+output:
+  html_document:
+    css: ../lab.css
+    highlight: pygments
+    theme: cerulean
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+library(datasauRus)
+library(tidyverse)
+```
+
+## Synopsis
+
+Congratulations on making it to the end of this course and the final activity! My hope is that this last activity is shorter, and possibly easier, than previous activities, while also illustrating a few key techniques and ideas. In particular, I hope this activity will:
+
+- reinforce and strengthen your ability to make plots in `R` using `ggplot`. 
+
+- teach you how to perform basic linear regression in `R`.
+
+- most importantly, remind you that the human element in interpreting statistics is as important, if not more so, than the quantitative side of the subject. 
+
+Thanks for a great semester! I hope you enjoyed it and hope you enjoy this final activity. 
+
+## Getting started
+
+### Creating a reproducible lab report
+
+We will again use R Markdown to create a lab report.  In RStudio, go to New File -> R Markdown.  Then, choose "From Template" and select `Lab Report for OpenIntro Statistics Labs`.  
+
+For a bit of additional assistance, check out [this video created by OpenIntro](https://youtu.be/Pdc368lS2hk). 
+
+Note: For each exercise, you should have a subsection that begins with `### Exercise` followed by the exercise number and a completely blank like. As an example, 
+
+```
+[End of Exercise 1 work.]
+
+### Exercise 2 
+
+[Your work here.]
+```
+
+### Loading packages and data
+ 
+We'll use the `tidyverse` and `openintro` packages in this lab, so let's first load these packages from the console. Be sure to also include these packages in the beginning of your lab notebook.
+
+We will get our data for this lab from an `R` package called `datasauRus`.  You will need to install this package first, then load it at the beginning of your lab notebook. 
+
+Once you've loaded the new package, we want to use the `datasaurus_dozen` data set from it.  We will call this data set `df`.
+
+The first code chunk in your report will look something like this:
+
+```{r loadPackages, warning=FALSE, message=FALSE}
+library(knitr)
+library(tidyverse)
+library(openintro)
+library(datasauRus)
+#copying datasaurus_dozen
+df <- datasaurus_dozen
+head(df)
+```
+
+The data set we're using today was created by Justin Matejka and George Fitzmaurice (based on a Tweet from Alberto Cairo) as a modern take on the famous Anscombe's quartet.The data is entirely simulated and has no "real world" implications, aside from the data anaylsis lessons we'll learn today.
+
+The end of this activity will provide some links to describe how they created the data set and their motivation for doing so. 
+
+
+The `datasauraus_dozen` data set is actually 12 different data sets stacked on top of each other, with the name of the data set in the `dataset` column.  The different sets, in alphabetical order, are 
+
+```{r}
+sort(unique(df$dataset))
+```
+
+Each set consists of 2 numerical variables simply called $x$ and $y$.  They don't have any physical meaning, but we'll think of $x$ as the explanatory variable and $y$ as the response. 
+
+1.  First, we want to look at the `v_lines` data set in `df`. 
+    - Subset/filter `df` to select only the `v_lines` data and assign the result to a data frame called `v_lines`. 
+    
+    - What are the average values of `x` and `y` in this data set?
+    
+## Linear regression and plotting
+
+This document will analyze the `slant_down` subset of `df`; you will continue to analyze `v_lines`.
+
+```{r}
+slant_down <- df %>% filter(dataset == "slant_down")
+```
+
+First things first, we want to compute a linear regression model for the relationship between $x$ and $y$. 
+
+```{r}
+m1 <- lm(y ~ x, data= slant_down)
+m1
+```
+
+How should we interpret these results? The `(Intercept)` is the $y$-intercept and the `x` coefficient is the slope, so our linear model is 
+\[ y = `r round(m1$coefficients[1],4)`  `r round(m1$coefficients[2],4)`\cdot x  \]
+
+This is great, but we don't have much of an indication of how strong the linear relationship between $x$ and $y$ is.  Fortunately, `R` has secretly made a lot of calculations for us beneath the hood. We need to know what to ask for and how to interpret it. 
+
+```{r}
+m1summary <- summary(m1)
+m1summary
+```
+
+There's a lot to take in here.  One of the first things we notice is that \( R^2 \approx `r round(m1summary$r.squared, 5)` \), so our linear relationship isn't very strong.  In particular, variation in $x$ doesn't explain much of the variability in $y$. This is further reinforced when we look at the correlation coefficient $R$:
+
+```{r}
+cor(slant_down$x, slant_down$y)
+```
+
+2.  Create a linear model for the association between $x$ and $y$ in your `v_lines` data set. 
+
+    - What are the slope and $y$-intercept.  Interpret the slope. 
+    
+    - What is $R^2$ of your model? Interpret this value. 
+    
+    - Do you think a linear model is appropriate for the `v_lines` data set? 
+
+Since the correlation coefficient is low, maybe we should check the residuals.  Recall that a condition for fitting a least squares line to data is the residuals are approximately normally distributed.  We will check these heuristically. The code below finds the average residual, the standard deviation of the residuals, then finds the Z-score of the minimum and maximum residuals.  
+
+```{r}
+resMean <- mean(m1$residuals)
+resS <- sd(m1$residuals)
+resExt <- c( min(m1$residuals), max(m1$residuals))
+resZ <- (resExt - resMean)/resS
+resMean
+resZ
+```    
+So there are no extreme residuals and the average residual is close to 0 - this is reasonable evidence that we are not violating the normality condition.  
+
+3.  Does the `v_lines` data set seem to violate the normality condition? Explain your answer. 
+
+Maybe we should have actually **looked** at the data more carefully before performing all of these calculations. Let's do so now.  
+
+```{r, fig.align='center'}
+ggplot(slant_down, aes(x = x, y = y)) + 
+  geom_point() +
+  labs(title = "slant_down scatterplot")
+```
+
+Ah ha! We have 5 different clusters of data that seem to be following an approximately linear trend.  While we could do some analysis to ID these clusters, we'll leave that for a later course. This explains, at least partially, why the $R^2$-value of the association in $slant_down$ is so low.  
+
+`R` makes it quite easy to plot the line generated by a linear model. We want to add a new layer to our previous plot, using `geom_smooth` as follows. 
+
+```{r, fig.align='center'}
+ggplot(slant_down, aes(x = x, y = y)) + 
+  geom_point() + 
+  geom_smooth(method = 'lm', se = FALSE)+
+  labs(title = "slant_down scatterplot w/ regression line")
+```
+
+From the plot above, we see that the linear model `m1` isn't sophisticated enough to detect the clustering and different linear associations present "confuse" our model.  
+
+4.  Create a scatter plot with the regression line for the `v_lines` data set.  Describe any patterns you see in the data.  Does a linear model seem any more or less appropriate? 
+
+## Something fishy
+
+After looking at `slant_down` and `v_lines` it seems like something funny may be going on with each of the data sets in `datasaurus_dozen`.  Let's investigate this at first by looking at all of the summary statistics for a linear model between $x$ and $y$ for each data set.  
+
+5. Use the code chunk below to calculate the following for $x$ and $y$: the average and standard deviation of each variable, the correlation coefficient for the relationship between $x$ and $y$, the slope and $y$-intercept of the regression line.  Recall that the slope of the regression line is \( b_1 = \frac{s_y}{s_x}\cdot R \) and the $y$-intercept is $b_0 = \overline{y} - b_1 \overline{x}$. 
+
+```{r,eval=FALSE}
+df %>%
+  group_by(dataset) %>%
+  summarize( mean_x = #?,
+             mean_y = #?,
+             sd_x = #?,
+             sd_y = #?,
+             cor = #?,
+             slope = #?,
+             y_int = #? )
+```
+
+6.  If you succeeded in the last exercise, you will notice something quite fishy about the summary statistics above.  Describe the fishyness in this exercise. 
+
+As a last step, we want to look at a plot of all 12 data sets.
+
+```{r, fig.align='center'}
+ggplot(df, aes(x = x, y=y, color = dataset)) +
+  geom_point() + 
+  theme_void() +
+  theme(legend.position = "none") +
+  facet_wrap(~dataset, ncol = 3)
+
+
+```
+
+7.  At the beginning of this document, we said that this activity would "remind you that the human element in interpreting statistics is as important, if not more so, than the quantitative side of the subject."  Explain in your own words what we meant by this, thinking about and referencing the plots above vs the summary statistics you calculated in Exercise 5.  
+
+When he tweeted the original datasaurus (the dino plot above), Cairo said "never trust summary statistics alone; always visualize your data".  Hopefully this activity convinces you that data visualization is more than just pretty pictures!
+
+The creators of the Datasaurus Dozen, Matejka and Fitzmaurice, [published a paper](Same Stats, Different Graphs: Generating Datasets with Varied Appearance and Identical Statistics through Simulated Annealing) describing how they created these data sets. It's pretty cool, so if you have a few minutes, it's worth a quick skim at least.
+
+

@@ -1,0 +1,263 @@
+---
+title: "STAT216 Activity 4: 2020 MT Deer Harvest"
+output:
+  html_document:
+    css: ../lab.css
+    highlight: pygments
+    theme: cerulean
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+library(tidyverse)
+library(openintro)
+```
+
+## Synopsis
+
+In this activity we will analyze [Montana Fish, Wildlife, and Park's](https://myfwp.mt.gov/fwpPub/harvestReports) 2020 deer hunting season report to address a few questions about deer hunting in the state.  The data set breaks down the results from the 2020 season by hunting district, species, sex of deer, and more.  We want to address the following questions 
+
+- Do Montanan's harvest more whitetail or mule deer annually? 
+
+- Which district(s) yield the most deer?  Which yield the most by species?
+
+- Which district(s) yield the most "big bucks"?
+
+- Are the big bucks spread out evenly around Northwest Montana? 
+
+Check out [this map](https://fwp.mt.gov/gis/maps/huntPlanner/?species=muledeer&showOwn=true&showRef=true&district=100) to familiarize yourself with the location of the hunting districts. 
+
+## Getting started
+
+### Load packages
+
+Fire up RStudio.  We'll use the `tidyverse` and `openintro` packages in this lab, so let's first load these packages from the console. Be sure to also include these packages in the beginning of your lab notebook.
+
+```{r loadPackages, warning=FALSE, message=FALSE}
+library(knitr)
+library(tidyverse)
+library(openintro)
+```
+
+### Creating a reproducible lab report
+
+We will again use R Markdown to create a lab report.  In RStudio, go to New File -> R Markdown.  Then, choose "From Template" and select `Lab Report for OpenIntro Statistics Labs`.  
+
+For a bit of additional assistance, check out [this video created by OpenIntro](https://youtu.be/Pdc368lS2hk). 
+
+Note: For each exercise, you should have a subsection that begins with `### Exercise` followed by the exercise number and a completely blank like. As an example, 
+
+```
+[End of Exercise 1 work.]
+
+### Exercise 2 
+
+[Your work here.]
+```
+
+### The data
+
+Like a previous activity, we need to download the data set from the web. Copy and paste the following
+code into a chunk in your lab report, then evaluate the chunk by clicking the green arrow in the top left corner.
+This chunk will download the `csv` file, then read it into `Rstudio` and store the data as `deer`
+
+```{r loadData}
+url <- "https://raw.githubusercontent.com/ckaterba/STAT216_activity_data/main/mtDeerHunt2020.csv"
+if(!file.exists("./deer.csv")){
+  download.file(url, "deer.csv")
+  }
+deer <- read.csv("deer.csv")
+```
+
+In the console, type `view(deer)` to explore the data a bit.  You will notice 8 variables: 
+
+- `district`: an integer representing the hunting district.  Notice that this is a categorical variable even though it is a number. 
+
+- `species`: categorical with two values `md` and `wt` representing mule deer and whitetail deer respectively. 
+
+- `harvest`: an integer reporting the count of the species harvested in the district.
+
+- `bucks`, `does`, `fawns`:  an integer reporting the count of the gender/age harvested in the district.
+
+- `smallBucks` and `bigBucks`: an integer reporting the count of the number of small and big bucks.  Here a small buck has fewer than 4 points and a big buck has four or more points.  
+
+All of the numbers above are counts of categorical variables, so we will be applying the techniques and tools from Chapter 6 in our textbook to analyze this data.
+
+## Anayzing the data
+
+### By species
+
+In this section, we'll attempt to address our first question: Do Montanan's harvest more mule deer or whitetail deer annually?  The data for 2020 will serve as a point estimate.  
+
+1.  
+    - How many deer were harvested in 2020, ignoring species? *Hint: add up the `harvest` column*
+    
+    - What proportion of deer harvested were whitetails? How about mule deer?  *Suggestion: Create 2 new data sets, one for each species, using the `subset` command.  For example, `mule <- subset(deer, species == 'md')`.  This will select only the rows with mule deer as species.  Then sum the `harvest` column in each of your new data sets to get the total number of each species harvested.*
+    
+    - Write the null and research hypothesis to test the claim that there is a difference between the *proportions* of mule and whitetail deer harvested annually. *Note that there are only two species of deer, mule and whitetail, so if there were no difference in their proportions, there would be a 50/50 split in their harvest totals.
+    
+To perform the hypothesis test from Exercise 1, we want to use the command `prop.test`.  This function takes a handful of arguments:
+
+- `x` is a vector of counts of successes. 
+
+- `n` is a vector of counts of trials.
+
+-  `p` is a vector of probabilities of success. Used to specify the null proportion. 
+
+- `alternative` specifies the type of hypothesis test. Options are `"two.sided"`, `"greater"`, or `"less"`. 
+
+- `conf.level` specifies the confidence level.  Notice that when performing a two-sided hypothesis test, the significance level is `1 - conf.level`.    
+
+- `correct` is either `TRUE` or `FALSE` indicating whether Yates' continuity correction should be applied where possible.  We will usually set this equal to  `FALSE`
+
+The code chunk below is a template to help you perform the hypothesis test. You can copy and paste this chunk into your lab report.  Every entry inside of a list/vector (ie inside of `c()`) needs to be separated by a comma. 
+
+```{r propTest, eval=FALSE}
+prop.test(x = , #number of mule deer
+          n = , #total number of deer harvested,
+          p = , #enter the null proportion
+          alternative = '', #what type of hypothesis test are we performing?
+          conf.level = .95, #this is the standard confidence level
+          correct = FALSE
+          )
+```
+
+2.  Run your code chunk to perform this hypothesis test.
+    
+    - What is the $p$-value of your test? 
+    
+    - Interpret the confidence interval in the context of the proplem using complete sentences. 
+    
+    - Interpret the results of your hpothesis test using complete sentences in the context of the problem.  
+    
+### By district
+
+In this section we want to identify the hunting districts in Montana with the best deer harvests.  We will get practice using `summarise` and `group_by`.  The code chunk below will help you construct the summary we will use in the rest of the activity.
+
+```{r byDist, eval = FALSE}
+byDistrict <- deer %>%
+  group_by(district) %>% #all aggregate functions (eg sum()) will group by district
+  summarize(total = sum(harvest), #this will add the number of wt to the number of md in each district
+            bucks = #enter code to find the number of bucks in each district
+            smallBucks = #find the number of small bucks in each district
+            bigBucks = #find the number of big bucks in each district
+            propBucks = #find the proportion of bucks harvested in each district 
+            propBigBucks = # find the proportion large bucks out of all bucks in the district
+            )
+
+```
+
+```{r byDistEval, echo = FALSE, warning=FALSE, message=FALSE}
+mule <- subset(deer, species == 'md')
+white <- subset(deer, species == 'wt')
+
+byDistrict <- deer%>%
+  group_by(district) %>%
+  summarize(
+    total = sum(harvest), 
+    bucks = sum(bucks),
+    smallBucks = sum(smallBucks),
+    bigBucks = sum(bigBucks), 
+    propBucks = bucks / total, 
+    propBigBucks = bigBucks / bucks
+  )
+
+region1 <- subset(byDistrict, district < 200)
+
+```
+
+3. As a first step, complete the summary table in the above code chunk, then evaluate your code chunk.  The resulting table should have one row for each district and seven column.  Explore the results with `view(byDistrict)`. 
+
+    - What district saw the largest total harvest of deer in 2020? What district had the smallest?  Look at the map of districts. Does geography help explain why these districts' harvest totals?
+    
+    - The Whitefish Range is mostly in District 110. Based on the data in our `byDistrict` table, does this seem like an efficient district for harvesting a deer? Explain your answer.
+    
+4.  Next we want to see if there is a relationship between the proportion of bucks harvested in a district, and the proportion of those bucks that are considered big. 
+
+    - Start a new code chunk and use it to make a scatter plot with `propBucks` on the horizontal axis and `probBigBucks` on the vertical axis. 
+    
+    - Describe any trend you notice in your scatter plot.  Be sure to mention the strength of this trend.
+    
+    - If you noticed a trend, try to explain why that trend may be there.  
+
+### Big bucks in Northwest Montana
+
+In the final section of this activity, we want to determine if the *harvested* big bucks are evenly spread around Northwest Montana.  More specifically, we will attempt to determine if the harvest big bucks are evenly distributed around the region. 
+
+Montana FWP divides the state into regions, then divides each region into districts.  There are 7 regions in the state and Northwest Montana is Region 1.  The first digit in a hunting districts' code represents the region. 
+
+The `district` column of our data set `byDistrict` is an integer, so we can use `subset` along with an inequality  ( ie `<`, `>`, `<=`, or `>=`)  to select only the districts in Region 1. 
+
+5.  Do this on your own.  More specifically, subset the data set `byDistrict` so that the result only contains the districts in Region 1.  Name the resulting data set `region1`.
+
+
+Now we're all set to test to check to see if the big bucks are evenly distributed throughout Northwest Montana, by district. To do this, we'll use a \( \chi^2\) goodness of fit test.  The null hypothesis will be the notion that the big bucks *are* evenly distributed throughout the region.  The research hypothesis will be that they are *not* evenly distributed.
+
+There are 17 hunting districts in Region 1.  Let $p_i$ denote the proportion of all harvested big bucks in the $i^{th}$ district, listed in ascending order. Then $H_0$ and $H_A$ are
+
+- $H_0$: $p_1 = P_2 = \cdots = p_{17} = 1/17$
+
+- $H_A$: at least one proportion is different from $1/17$.  
+
+We will perform this test with the function `chisq.test`. When performing a goodness of fit test, we only need 3 inputs 
+
+- `x`: a vector of counts 
+
+- `p`: a list of proportions with the same length as `x`
+
+- `correct`: this will be set equal to `FALSE` to be consistent with what we've done in class.  
+
+```{r chiSq}
+chisq.test( x = region1$bigBucks,
+            p = rep( 1/17, 17),
+            correct = FALSE
+)
+```
+
+From this test, we should clearly reject the null and accept the research, since the $p$-value is quite small.  In other words, the 2020 data provide compelling evidence to believe that the big bucks are not equally distributed among the districts in Region 1.  
+
+This result is no surprise.  There are a few district with very low overall harvest numbers. In the console, run `view(region1)`.  Notice that districts 141 and 150 have very low total harvest numbers compared to the other districts.  
+
+6.  Look at the hunting district map again.  Find districts 141 and 150.  Why do you think the total harvests (and hence the big buck counts) are so low in these two districts? 
+
+Similarly, there are districts that have quite large harvest totals.  There is very likely an association between total harvest and the number of big bucks harvested.  This association is clearly exemplified in the scatter plot below 
+
+```{r plot, fig.align='center'}
+harvestPlot <- ggplot(region1, aes(x = total, y = bigBucks)) +
+  geom_point(color = "steelblue") +
+  labs(x = "Total harvest", 
+       y = "Big buck harvest", 
+       title = "Region 1: harvest vs buck buck totals")
+harvestPlot
+```
+
+So, while our first test *did* tell us something, it didn't tell us anything very surprising: the more deer that are harvest in a district, the more big bucks are harvested in that district.  
+
+Instead, we may be more interested in determining if the categorical variables "hunting district" and "buck size" are dependent.  We can test this using a \(\chi^2\) test of independence.  
+
+To be safe, we'll throw out districts 141 and 150.  Copy and paste this code into your own code chunk.
+
+```{r subsetting}
+region1 <- subset(region1, total>100 )
+```
+
+To perform the test of independence, we only need to input the correct "matrix" of numbers.   Remember that each row in `region 1` represents a district.  The columns of interest are `smallBucks` and `bigBucks`, which are the 4th and 5th columns of `region1`.  Thus `region1[,4:5]` is the matrix of numbers we're looking for!
+
+
+```{r lastOne, eval=FALSE}
+chisq.test( x = # the data in question goes here ,
+              correct = FALSE)
+```
+
+7.  Copy this code into your own code chunk, complete it, then run your code chunk. 
+
+    - What can we infer, if anything, from the results of this test? 
+
+    - The results may be statistically significant, but are they practically significant?  In other words, do you think you could use these calculations to effectively plan a more fruitful hunt, assuming the goal of the hunt is to harvest a big buck?
+  
+----------------------------------------------------------
+
+This Markdown template was taken from [the Openintro Stats Labs](http://openintrostat.github.io/oilabs-tidy/01_intro_to_r/intro_to_r.html).
