@@ -36,17 +36,21 @@ Notice that both of these questions are about populations of fish, but we only h
 
 ### Load packages
 
-Fire up RStudio.  We'll use the `tidyverse`, `openintro` and `infer` packages in this lab.  We haven't used `infer` yet, so we need to install it first.  Depending on your computer/browser combo, you may need to reinstall the other packages as well.  
+Fire up RStudio.  We'll use the `tidyverse`, `openintro` and `infer` packages in this lab.  We haven't used `infer` or `knitr` yet, so we need to install it first.  Depending on your computer/browser combo, you may need to reinstall the other packages as well.  
 
 ```{r installPackages, eval=FALSE}
 install.packages("infer")
+install.packages("knitr")
 ```
 
-Next, load `tidyverse`, `openintro`, and `infer` from console.  You'll also want to load the packages at the beginning of your document as follows. 
+**Note:** This document uses the `knitr` function `kable()` quite a bit. This function simply formats an `R` dataframe/tibble/data set into a nice looking html table. This function and it's corresponding package are not necessary, but they do make your results look nices.
+
+Next, load `tidyverse`, `openintro`, `knitr`, and `infer` from console.  You'll also want to load the packages at the beginning of your document as follows. 
 
 ```{r loadPackages, eval = FALSE}
 library(tidyverse)
 library(openintro)
+library(knitr)
 library(infer)
 set.seed( #PUT YOUR OWN NUMBER IN HERE#)
 ```

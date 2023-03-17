@@ -1,5 +1,5 @@
 ---
-title: "STAT216 Activity 1: Intro to RStudio"
+title: "STAT216 Activity 1: Intro to RStudio/Posit"
 output:
   html_document:
     css: lab.css
@@ -17,27 +17,26 @@ library(openintro)
 
 ## Synopsis
 
-The goal of this lab is to introduce you to R and RStudio, which you'll be using
-throughout the course both to learn the statistical concepts discussed in the 
+The goal of this lab is to introduce you to R and RStudio (which has rebranded as Posit as of October 2022), which you'll be using throughout the course both to learn the statistical concepts discussed in the 
 textbook and also to analyze real data and come to informed conclusions.  To 
 straighten out which is which: R is the name of the programming language itself 
-and RStudio is a convenient interface.
+and Posit is a convenient interface.
 
 As the labs progress, you are encouraged to explore beyond what the labs dictate;
 a willingness to experiment will make you a much better programmer.  Before we 
 get to that stage, however, you need to build some basic fluency in R.  Today we
-begin with the fundamental building blocks of R and RStudio: the interface, 
+begin with the fundamental building blocks of R and Posit: the interface, 
 reading in data, and basic commands.
 
 ## Getting started
 
 Follow these few steps to get started:
     
-**Step 1.** If you haven't already done so, create a free account at [Rstudio.cloud](https://rstudio.cloud) using your FVCC email address. (if the link doesn't work, right click and select "open in new tab")
+**Step 1.** If you haven't already done so, create a free account at [posit.cloud](https://posit.cloud) using your FVCC email address. (if the link doesn't work, right click and select "open in new tab")
 
 **Step 2.** In the upper right corner of the page, select "New Project," then "New RStudio Project."  Call your project something evocative like "STAT216." We'll work on all of our activities in this project. 
 
-**Step 3.** Now you see an RStudio workspace with three windows in it: Console, Environment, and a Files.  The console window is a place to perform quick calculations and install/load packages.  An R package is a collection of commands, datasets, etc. that someone in the R community has authored to make our lives easier.  In this class we will use two main packages, the "tidyverse" and "openintro." The tidyverse package will help us manage data easily and the openintro package gives us access to all the datasets in our textbook (among other things). In the console type:
+**Step 3.** Now you see an Posit workspace with three windows in it: Console, Environment, and a Files.  The console window is a place to perform quick calculations and install/load packages.  An R package is a collection of commands, datasets, etc. that someone in the R community has authored to make our lives easier.  In this class we will use two main packages, the "tidyverse" and "openintro." The tidyverse package will help us manage data easily and the openintro package gives us access to all the datasets in our textbook (among other things). In the console type:
 ```{r package-install1, warning=FALSE, eval=FALSE}
 install.packages("tidyverse")
 ```
@@ -55,7 +54,7 @@ library(tidyverse)
 
 **Step 5.**  You're going to complete this lab using an R Markdown file.  Download the file ***STAT216_A1_lab_report.Rmd*** from Eagle Online. You can find this file in the Activity 1 assignment folder or [BLAHBLAHBLAH]  
 
-**Step 6.** In the file window of your RStudio workspace, you'll see an "Upload" button.  Select "Choose file" and find ***STAT216_A1_lab_report.Rmd.*** Select this file then hit OK.
+**Step 6.** In the file window of your Posit workspace, you'll see an "Upload" button.  Select "Choose file" and find ***STAT216_A1_lab_report.Rmd.*** Select this file then hit OK.
 
 **Step 7.** You should now see this file listed in the file window.  Click the file to open your lab report.  
 
@@ -80,7 +79,7 @@ log(10, 10)
 
 1.  In your lab report there is a section for you to make three calculations on your own. We will learn more about R as a "big calculator" as the semester proceeds, but play around with at least three calculations on your own.  
 
-## RStudio and data sets  
+## Posit and data sets  
 
 For the rest of this activity we will be working with some new car data from 1993.  This data set is called `cars93`.  To start with, evaluate
 ```{r help, eval=FALSE}
@@ -128,7 +127,7 @@ summary(cars93$type)/length(cars93$type)
 
 ## Visualizations: categorical variables
 
-Visualizing data using barcharts, histograms, scatterplots, etc. can be essential for data exploration and communication.  Fortunately, RStudio makes many visualizations easy to construct.  As an example, let's see how to construct a bar chart to visualize the numbers of each type of car in the `cars93` dataset. 
+Visualizing data using barcharts, histograms, scatterplots, etc. can be essential for data exploration and communication.  Fortunately, Posit makes many visualizations easy to construct.  As an example, let's see how to construct a bar chart to visualize the numbers of each type of car in the `cars93` dataset. 
 
 ```{r visual1}
 p <- ggplot(cars93, aes(x=type)) + geom_bar(stat="count", fill="steelblue")
@@ -174,7 +173,7 @@ We may want to visualize the shape or distribution of a single numerical variabl
 p <- ggplot(cars93, aes(x=price)) + geom_histogram(bins = 15, fill = "steelblue")
 p
 ```
-In the code above `geom_histogram` told RStudio to make a histogram and `bin = 15` specified there to be a total of 15 bins.  The program makes the bid width calculation automatically.  If you do not specify the number of bins, the default value is 30.  
+In the code above `geom_histogram` told Posit to make a histogram and `bin = 15` specified there to be a total of 15 bins.  The program makes the bid width calculation automatically.  If you do not specify the number of bins, the default value is 30.  
 
 6.  Construct a histogram to visualize the distribution of the `weight` variable.  How would you describe this distribution?  
 
@@ -211,17 +210,17 @@ We will not explicity describe what a violin plot shows (see Exercise 8 below), 
 
 8.  Describe, in your own words, what a violin plot shows.  You may want to look this up; feel free to simply search "violin plot" on the web and see what you find.  
 
-## Resources for learning R and working in RStudio
+## Resources for learning R and working in Posit
 
-That was a short introduction to R and RStudio, but we will provide you with more functions and a more complete sense of the language as the course progresses.
+That was a short introduction to R and Posit, but we will provide you with more functions and a more complete sense of the language as the course progresses.
 
 In this course we will be using the suite of R packages from the **tidyverse**. The book [R For Data Science](https://r4ds.had.co.nz/) by Grolemund and Wickham is a fantastic resource for data analysis in R with the tidyverse. If you are Goggling for R code, make sure to also include these package names in your search query. For example, instead of Goggling "scatterplot in R", Goggle "scatterplot in R with the tidyverse".
 
-These may come in handy throughout the semester:
+Posit has a large collection of helpful [cheat sheets available here](https://posit.co/resources/cheatsheets/)
 
--   [RMarkdown cheatsheet](https://github.com/rstudio/cheatsheets/raw/master/rmarkdown-2.0.pdf)
--   [Data transformation cheatsheet](https://github.com/rstudio/cheatsheets/raw/master/data-transformation.pdf)
--   [Data visualization cheatsheet](https://github.com/rstudio/cheatsheets/raw/master/data-visualization-2.1.pdf)
+-   [RMarkdown cheat sheet](https://posit.co/wp-content/uploads/2022/10/rmarkdown-1.pdf)
+-   [Data transformation cheatsheet](https://posit.co/wp-content/uploads/2022/10/data-transformation-1.pdf)
+-   [Data visualization cheatsheet](https://posit.co/wp-content/uploads/2022/10/data-visualization-1.pdf)
 
 Note that some of the code on these cheat sheets may be too advanced for this course. However the majority of it will become useful throughout the semester.
 
