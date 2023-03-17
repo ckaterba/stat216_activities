@@ -2,7 +2,7 @@
 title: "STAT216 Activity 5: Datasaurus Vex"
 output:
   html_document:
-    css: ../lab.css
+    css: lab.css
     highlight: pygments
     theme: cerulean
     toc: true

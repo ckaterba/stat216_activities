@@ -2,7 +2,7 @@
 title: "STAT216 Activity 4: 2020 MT Deer Harvest"
 output:
   html_document:
-    css: ../lab.css
+    css: lab.css
     highlight: pygments
     theme: cerulean
     toc: true

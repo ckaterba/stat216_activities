@@ -1,0 +1,311 @@
+---
+title: "STAT216 Activity 2: Montana Scratch Lotto Tickets"
+output:
+  html_document:
+    css: lab.css
+    highlight: pygments
+    theme: cerulean
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(openintro)
+```
+
+## Synopsis
+
+In this activity, you will analyze a few Montana scratch lottery games using random variables.  Imagine that you're going to spend \$60 per week on scratch lottery tickets. [Montana scratch tickets](https://www.montanalottery.com/en/view/scratch) cost \$1, \$2, \$3, \$5, \$10, or \$20.  
+
+**Question:** Does it matter which ticket(s) you buy if you're going to spend \$60 per week on lottery tickets?  How does the cost of a lottery ticket relate to its *expected winning?*
+
+
+In this lab, we hope to: 
+
+-  Increase your familiarity with RStudio.  In particular, we will work on loading and manipulating data sets.  
+
+-  Increase your familiarity and comfort with random variables.   
+
+
+## Getting started
+
+### Load packages
+
+Fire up RStudio.  We'll use the **tidyverse** and **openintro** packages in this lab, so let's first load these packages from the console. 
+
+```{r loadPackages}
+library(tidyverse)
+library(openintro)
+```
+
+### Creating a reproducible lab report
+
+We will again use R Markdown to create a lab report.  In RStudio, go to New File -> R Markdown.  Then, choose "From Template" and select `Lab Report for OpenIntro Statistics Labs`.  
+
+For a bit of additional assistance, check out [this video created by OpenIntro](https://youtu.be/Pdc368lS2hk). 
+
+Note: For each exercise, you should have a subsection that begins with `### Exercise` followed by the exercise number and a completely blank like. As an example, 
+
+```
+[End of Exercise 1 work.]
+
+### Exercise 2 
+
+[Your work here.]
+```
+
+Any time you want to make calculations using R in your Markdown document, remember that you can create a code chunk by writing ` ```{r ChodeChunkName}` on one line, followed by your code on a new line, then close the code chunk with ` ``` ` on another new line.    
+
+
+### The data 
+
+As a first step, check out the [Montana scratch tickets](https://www.montanalottery.com/en/view/scratch).  The data set we'll use was scrapped from the internet in October 2021. The games you see may be different, from those in the data set, but the ideas will be the same.  
+
+Next, we need to load the data into RStudio. Start an R code chunk in your Markdown document, then copy and paste the following into your code chunk:
+
+```{r loadData}
+url <- "https://raw.githubusercontent.com/ckaterba/ScratchLottoScrape/master/outputCSV/allScratchGames.csv"
+if(!file.exists("allScratchGames.csv")){
+  download.file(url, "allScratchGames.csv")  
+}
+df <- as_tibble(read.csv("allScratchGames.csv"))
+```
+
+Run the code chunk by clicking the green triangle in the top right corner of the chunk.  This code chunk downloads a CSV (comma separated value) file with all of the Montana scratch lotto games, their prices, payouts, and probabilities of all payouts. 
+
+1.  This is a three part question:
+
+    - Look at a one dollar, ten dollar, and a twenty dollar ticket.  if you were going to buy \$20 worth of tickets, only buying tickets for these games, what would you do?  Note: you don't have to make any calculations yet, but explain your answer.
+
+    - The game "Baby, It's Cold Outside!" has two payouts of \$10 in the dataset.  Why is this? Looking at the odds tables on the Montana Scratch Lotto home page may be helpful. 
+    
+    - How many scratch lotto tickets are in the dataset? *Hint:* The command `length` gives you the length of a list.  The command `unique` returns a list all of the unique values in a list.  So if our list were `x <- c('a', 'a', 'a' 'b', 'b', 'c')`, `length(unique(x)) = 3` is the number of unique values in `x`.   
+
+## Analyzing the scratchers
+
+Recall that we're investigating the expected winnings of scratch lotto tickets.  In particular, we want to see if cost per ticket matters if we were to spend \$60 a week on tickets.  To do so, we're going to learn about four features of RStudio that are very convenient for data analysis.  These features are piping, the `mutate` function,  the `group_by` function, and the `summarize` function. 
+
+### Piping, mutate, and summarize
+
+- **Piping** and **pipes** are a code formatting tool that help you clearly express a sequence of multiple data manipulation operations. The pipe, symbolically, is `%>%`.
+
+- `mutate` is a function that adds new variables to a data set and preserves the existing ones.  
+
+- `group_by` is a function that creates a grouped data set, where you group variables by the common values.  We will typically use this function before using the `summarize` function.   
+
+- `summarize` creates a new data frame from an existing one with one row for each combination of grouping variables.  The entries in each row will by some type of summary (specified by you!) of the variables in each group. 
+
+This might sound quite general and/or vague, so it may be easier to get a handle on what these functions do by looking at a small toy example.  
+
+```{r toyExample}
+#Creating a small example
+toy <- tibble( name = rep(letters[1:3], length = 9), 
+               value = 1:9, 
+               prob = c(.1, .2, .3, .3, .2, .1, .6, .6, .6 )) %>% 
+  arrange(name)
+toy
+```
+Our data set `toy` has 3 values in the `name` variable, `a`, `b`, and `c`, with three entries for each name.   
+
+Suppose we want to square all the `value` variables. The `mutate` function gives us an easy way to do that.  Notice in the example below, we define a new variable name, `sq_value`, then set that equal to what we want to calculate. 
+
+```{r toyMutate}
+toy %>% #this is our first example of piping! this means do whatever follows to the data frame toy
+  mutate(sq_value = value^2)
+```
+
+What if we wanted to add up `value` for each value of the `name` variable? The functions `group_by` and `summarize` are a succinct method for this:
+
+```{r toySummarize}
+toy %>%
+  group_by(name) %>%
+  summarize(valSum = sum(value))
+```
+
+**CAUTION!** We have not changed the `toy` data set at all, since we didn't define it to be the mutated or summarized data frame!
+
+```{r toy}
+toy
+```
+
+If we wanted to store the summarized data frame, we'd have to give it a name:
+
+```{r toySumStored}
+toySummary <- toy %>%
+  group_by(name) %>%
+  summarize(valSum = sum(value))
+toySummary
+```
+### Scratcher analysis
+
+We want to calculate the expected *winnings* and standard deviation of spending \$60 on each type of Montana Scratch Lotto ticket and will use `mutate` and `summarize` to do this for us.  First, we need to calculate the expected value of a single ticket.  
+
+#### Expected value for one ticket
+
+Recall that the expected value of a discrete random variable $X$ is
+$$ E(X ) = \sum_{i = 1 }^k x_i \cdot P(X = x_i)  $$
+
+
+Here is an example of how one can calculate the expected value of a random variable in `R` using our `toy` example from above as a model. Since we need to use the expected value to calculate the variance, we want to store the expected value of each `name` in each row of `toy`.  This can be accomplished by using `group_by` and `mutate` both.  
+
+```{r exValPrep}
+toy <- toy %>%
+  group_by(name) %>% 
+  mutate(exp_val = sum(value*prob))
+toy
+```
+
+Notice that in each row with `name = a`, the expected value is `exp_val = 5.5` and similarly for `name = b` or `c`.  
+
+For the scratch lotto tickets, we want to calculate the expected *winnings* of a ticket.  Recall that *winnings* are equal to payout minus price. 
+
+For Exercise 2, copy and paste code above into a new code chunk in your lab report.
+
+```{r winnings, message=FALSE, warning=FALSE, error=FALSE, eval=FALSE}
+df <- df %>% 
+  group_by(#your work here# ) %>% 
+  mutate( Winnings =  # your work here # ) %>%
+  mutate( exp_val = # your work here # )
+```
+
+2. Complete each of the following, using the code chunk above as a template.  
+    -  Copy and paste code above into a new code chunk in your lab report.
+    -  Decide which variable to group by, fill your work into the code chunk, deleting`#your work here# ` and replacing it with your work.  
+    -  Add a new column to `df` using the `mutate` function to create a variable called `Winnings` (remember, winnings are payout minus price).
+    - Add a second new column to `df` using `mutate` to create a new variable called `exp_val` that is the `sum` of  `Winnings` multiplied by `Probabilty`.  
+    - Run your code chunk with the green triangle in the top right corner.
+    - What are the expected winnings of the game "Big Bucks"? *Hint: the `subset` command will help.  We're subsetting the data set `df` by the variable `Name`.  Be sure to use `==` inside of the `subset` function.*
+
+#### Variance and Standard Deviation for one ticket
+
+Now that we have the expected value for a single ticket, we can calculate the variance and standard deviation for a single ticket.  Recall that for a discrete random variable $X$, the variance and standard deviation are: 
+
+$$ V(X ) = \sum_{i = 1 }^k (x_i - E(X))^2\cdot P(X = x_i) \quad \text{and} \quad \text{SD}(X) = \sqrt{V(X)}$$
+
+As above, we'll use the `toy` example to calculate both of these values. Note that in the example below `toy` is already grouped by `name` so we don't have to add that in again.  
+
+```{r toyVarSD}
+toy <- toy %>%
+  mutate(var = sum( prob*(value - exp_val)^2)) %>%
+  mutate(sd = sqrt(var))
+toy
+```
+
+```{r lottoVarSD, eval = FALSE}
+df <- df %>%
+  mutate(var = #your work here# ) %>%
+  mutate(sd = #your work here# ) 
+```
+
+
+3.  Use the code chunk above as a template for this exercise. 
+    -  Copy and paste code above into a new code chunk in your lab report.
+    -  Add a new column to `df` called `var` that calculates the variance of the winnings using `mutate`, modeling your work on the example above. 
+    -  Add a new column to `df` called `sd` that calculates the standard deviation of the winnings, moeling your work on the example above. 
+    -  What are the variance and standard deviation of the winnings for the game "Big Bucks"?
+    
+#### Tidying our dataset     
+
+At this point, we've calculated the expected value, variance, and standard deviation for every scratch lotto ticket, but the data set we're using is quite large since we have one row for every possible outcome of every possible ticket.  Our goal in this section is to tidy up our dataset.  For each scratch lotto game, we want 1 row.  In that row we want
+
+-  `Name`
+-  `Price`
+-  `exp_val`, the expected winnings of a single ticket
+-  `var`, the variance of the winnings for a single ticket
+-  `sd`, the standard deviation of the winnings for a ticket
+ 
+We've already constructed these variables, and they are constant for each scratch lotto game, so we can easily use the `summarize` function to compress `df` into a much tidier dataset. 
+
+We'll use `toy` as an example of what we'll do with `df`
+
+```{r toySummary}
+toySummary <- toy %>% 
+  group_by(name) %>%
+  summarise(exp_val = mean(exp_val), 
+            var = mean(var), 
+            sd = mean(sd))
+toySummary
+```
+It might seem strange to take the average of `exp_val`, `var`, and `sd`, but since these values are constant for `a`, `b`, and `c`, the average just returns the appropriate value (ie the expected value, variance, and standard deviation of 'a').  Note that you can use any summary stat here (mean, median, mode, max, min, etc.) and it will return the correct value.
+
+The following code will construct the summary dataset that we hope for, and arranges the scratch tickets first by price, then by expected value.  This means all the tickets that cost $1 are grouped together, sorted by increasing expected value.  
+
+```{r dfSummary, eval=FALSE}
+scratchSummary <- df %>% 
+  group_by(Name) %>%
+  summarise(Price = mean(Price),
+            exp_val = mean(exp_val),
+            var = mean(var),
+            sd = mean(sd)) %>%
+  arrange(Price, exp_val)
+```
+
+4. First, create a new code chunk in Exercise 4. Then copy and paste the code above into your new code chunk.  Evaluate all code chunks above this one by clicking the grey down pointing triangle with a green line under it.  Then run this code chunk by clicking the right pointing green triangle. 
+
+    - *In the console* type `view(scratchSummary)`.  This will bring up a new window displaying our new summary of all the scratch tickets.  
+    
+    - Which one dollar ticket has the highest (ie least negative) expected value?
+    
+### Spending sixty dollars on each ticket
+
+Comparing the expected value of tickets that cost different amounts of money may not be the best comparison.  If you spend \$20 on a single ticket, of course you're going to lose more money on average than if you only spent \$1.  
+
+In this section, we'll analyze the expected value and standard deviation of purchasing \$60 worth of each type of scratch lotto ticket.  Note that we're looking at \$60 because it is the least common multiple of the prices of all tickets.  
+
+As a first step, we need to determine how many of each ticket we should buy.  We will add this column to our `scratchSummary` data set. To calculate this number, we should divide 60 by the price.  
+
+```{r numTickets, eval=FALSE}
+scratchSummary <- scratchSummary %>%
+  mutate(num_tix = # your work here # )
+```
+
+5.  Create a new code chunk in your lab report and use the code above as a template to calculate the number of tickets of each type we need to buy.  
+    
+    - How many "Super Crossword" tickets would you need to buy?
+    
+#### Expected value, variance, and std. dev. \$60 of tickets
+
+Now we want to calculate the expected value of \$60 worth of each type of scratch lotto ticket.   Observe that purchasing \$60 worth of tickets is playing the same game `num_tix` number of times.  Thus we want to calculate the expected value of 
+$$ X + X + \cdots + X$$
+where $X$ represents a single ticket and there are `num_tix` $X$'s in the sum. For instance if we're looking at a \$20 game, we need to calculate the expected value of $X + X + X$.  Using what we learned in Chapter 3, this is:
+
+$$ E(X + X + X ) = E(X) + E(X) + E(X) = 3E(X).$$
+
+Thus, we can calculate the expected value of \$60 dollars worth of tickets by multiplying `exp_val` by `num_tix`
+
+Similarly, the if $X$ is the random variable denoting the winnings of a single \$20 ticket, we can calculate the variance of $X + X + X$ as 
+
+$$V(X + X + X ) = V(X) + V(X) + V(X) = 3V(X)$$
+
+This can be done by multiplying `var` by `num_tix`.  
+
+Finally, the standard deviation, as usual, is just the square root of the variance.
+
+The code below will help you add these columns to `scratchSummary`
+
+```{r sixty, eval=FALSE}
+scratchSummary <- scratchSummary %>% 
+  mutate(exp_val_60 = #your work here# ) %>%
+  mutate(var_60 = #your work here# ) %>%
+  mutate(sd_60 = #your work here #) %>%
+  arrange( #your work here# )
+```
+
+6.  Create a new code chunk, then copy and paste the code above into this chunk.
+      - Fill in the appropriate calculations to compute the expected value, variance, and standard deviation of \$60 worth of scratch lotto tickets. 
+      - Use the `arrange` function to order the data set by `exp_val_60`
+      - Which scratch lotto ticket(s) have the highest (ie least negative) expected value?
+      
+7.  Nice work, you've made it to the last problem! 
+      - First, construct a scatter plot of `exp_val_60` vs `Price`.  Price should be on the horizontal axis. You may want to review the first activity for assistance in making the plot.   Describe any trend you observe. 
+      - Next, construct a scatter plot of `sd_60` vs `Price`.  Describe any trend you observe.
+      - Finally, after making all of these calculations, try to decide what you would do in the following situations.
+          - If you were going to spend \$60 on scratch lotto tickets once, which types of tickets would you buy? Explain your answer.
+          - If you were going to spend \$60 on scratch lotto tickets every week for a year, which type of tickets would you buy? Explain your answer. 
+
+
+----------------------------------------------------------
+
+This Markdown template was taken from [the Openintro Stats Labs](http://openintrostat.github.io/oilabs-tidy/01_intro_to_r/intro_to_r.html).

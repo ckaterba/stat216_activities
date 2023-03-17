@@ -3,7 +3,7 @@ title: "STAT216 Activity 3: Flathead Lake Fish"
 output:
 #  pdf_document: default
   html_document:
-    css: ../lab.css
+    css: lab.css
     highlight: pygments
     theme: cerulean
     toc: true
