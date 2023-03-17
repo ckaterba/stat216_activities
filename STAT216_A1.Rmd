@@ -1,7 +1,6 @@
 ---
 title: "STAT216 Activity 1: Intro to RStudio"
 output:
-  pdf_document: default
   html_document:
     css: lab.css
     highlight: pygments
